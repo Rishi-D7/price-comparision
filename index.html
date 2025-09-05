@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Product Comparision | Professional Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* slate-950 */
+            background-image: radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 97% 21%, hsla(135, 98%, 72%, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 75% 88%, hsla(240, 98%, 72%, 0.15) 0px, transparent 50%);
+        }
+        .animated-gradient {
+            background-image: linear-gradient(120deg, #1e3a8a, #059669, #3b82f6, #10b981);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-item-animation { opacity: 0; animation: fadeIn 0.5s ease-in-out forwards; }
+        .glass-card { background-color: rgba(2, 6, 23, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.5); }
+    </style>
+</head>
+<body class="text-slate-300 min-h-screen">
+
+    <header class="bg-slate-900/70 backdrop-blur-lg shadow-lg shadow-black/20 sticky top-0 z-20 border-b border-slate-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">AI Product Comparision</h1>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <div id="main-content" class="max-w-3xl mx-auto">
+            
+            <div id="upload-card" class="glass-card p-8 rounded-2xl shadow-2xl shadow-black/30 transition-all duration-500">
+                <div class="text-center">
+                    <div class="mx-auto bg-slate-700/50 rounded-full w-16 h-16 flex items-center justify-center border border-slate-700">
+                        <svg class="w-8 h-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+                    </div>
+                    <h2 class="text-3xl font-extrabold mt-4 text-white">Upload Your Product Image</h2>
+                    <p class="text-slate-400 mt-2">Drag & drop an image or click to browse.</p>
+                </div>
+
+                <div id="upload-area" class="mt-8 border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition-colors">
+                    <input type="file" id="image-upload" accept="image/*" class="hidden">
+                    <div id="upload-prompt">
+                        <img id="image-preview" src="" class="hidden w-32 h-32 object-cover mx-auto rounded-lg mb-4 shadow-md">
+                        <p id="file-name" class="text-slate-300 font-medium">No file chosen</p>
+                        <p class="text-sm text-slate-500 mt-1">PNG, JPG, WEBP accepted</p>
+                    </div>
+                </div>
+                
+                <button id="compare-btn" class="mt-8 w-full animated-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:-translate-y-0" disabled>
+                    Analyze & Compare Prices
+                </button>
+            </div>
+            
+            <div id="loader-card" class="hidden text-center glass-card p-8 rounded-2xl shadow-2xl shadow-black/30">
+                <div class="mx-auto w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+                <h2 class="text-3xl font-extrabold mt-6 text-white">Analyzing with AI...</h2>
+                <p id="loading-text" class="text-slate-400 mt-2">Our AI is identifying the product, please wait a moment.</p>
+            </div>
+
+            <div id="results-card" class="hidden">
+                <div class="text-center mb-12">
+                     <h2 class="text-3xl font-extrabold text-white">AI Analysis Complete!</h2>
+                     <p class="text-slate-400 mt-2">Here's what we found, with price comparisons from relevant stores.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl shadow-2xl shadow-black/30">
+                    <div id="product-info" class="flex flex-col sm:flex-row items-center gap-8 mb-8 pb-8 border-b border-slate-700">
+                        <img id="product-image" src="" alt="Product Image" class="w-40 h-40 object-cover rounded-xl shadow-lg border-2 border-slate-700">
+                        <div class="text-center sm:text-left">
+                            <p class="text-blue-400 font-semibold" id="product-brand">Brand</p>
+                            <h3 id="product-name" class="text-3xl font-bold text-white leading-tight">Product Name</h3>
+                            <p class="text-slate-400 mt-2" id="product-details">Details from AI...</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-bold mb-4 text-center sm:text-left text-white">Price Comparison (Simulated)</h3>
+                    <div id="price-list" class="space-y-4">
+                        </div>
+                </div>
+                <div class="text-center mt-8">
+                     <button id="start-over-btn" class="bg-slate-800 text-slate-300 px-6 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors border border-slate-700">Start Over</button>
+                </div>
+            </div>
+
+            <div id="error-box" class="hidden mt-6 bg-red-900/50 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg fade-in" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span id="error-message"></span>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const allElements = {
+                uploadCard: document.getElementById('upload-card'), loaderCard: document.getElementById('loader-card'), resultsCard: document.getElementById('results-card'),
+                uploadArea: document.getElementById('upload-area'), imageUpload: document.getElementById('image-upload'), imagePreview: document.getElementById('image-preview'),
+                fileNameDisplay: document.getElementById('file-name'), compareBtn: document.getElementById('compare-btn'), loadingText: document.getElementById('loading-text'),
+                productImage: document.getElementById('product-image'), productName: document.getElementById('product-name'), productBrand: document.getElementById('product-brand'),
+                productDetails: document.getElementById('product-details'), priceList: document.getElementById('price-list'), errorBox: document.getElementById('error-box'),
+                errorMessage: document.getElementById('error-message'), startOverBtn: document.getElementById('start-over-btn'),
+            };
+            let base64Image = null;
+
+            const showScreen = (screenName) => {
+                ['uploadCard', 'loaderCard', 'resultsCard'].forEach(card => allElements[card].classList.add('hidden'));
+                if (allElements[screenName]) { allElements[screenName].classList.remove('hidden'); allElements[screenName].classList.add('fade-in'); }
+            };
+            const showError = (message) => { allElements.errorMessage.textContent = message; allElements.errorBox.classList.remove('hidden'); };
+            const hideError = () => allElements.errorBox.classList.add('hidden');
+            const resetUI = () => {
+                base64Image = null; allElements.imageUpload.value = ''; allElements.imagePreview.classList.add('hidden');
+                allElements.fileNameDisplay.textContent = 'No file chosen'; allElements.compareBtn.disabled = true;
+                hideError(); showScreen('uploadCard');
+            };
+
+            allElements.uploadArea.addEventListener('click', () => allElements.imageUpload.click());
+            allElements.startOverBtn.addEventListener('click', resetUI);
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => allElements.uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false));
+            allElements.uploadArea.addEventListener('dragover', () => allElements.uploadArea.classList.add('bg-slate-800/50', 'border-blue-500'));
+            allElements.uploadArea.addEventListener('dragleave', () => allElements.uploadArea.classList.remove('bg-slate-800/50', 'border-blue-500'));
+            allElements.uploadArea.addEventListener('drop', e => {
+                allElements.uploadArea.classList.remove('bg-slate-800/50', 'border-blue-500');
+                if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+            });
+            allElements.imageUpload.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+            function handleFile(file) {
+                hideError(); allElements.fileNameDisplay.textContent = file.name; allElements.compareBtn.disabled = false;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    allElements.imagePreview.src = reader.result; allElements.imagePreview.classList.remove('hidden');
+                    base64Image = reader.result.split(',')[1];
+                };
+                reader.onerror = () => { showError('Could not read the selected file.'); base64Image = null; };
+            }
+
+            allElements.compareBtn.addEventListener('click', async () => {
+                if (!base64Image) { showError('Please select an image file first.'); return; }
+                showScreen('loaderCard');
+                try {
+                    const aiResponse = await analyzeImageWithAI(base64Image);
+                    displayResults(aiResponse, `data:image/jpeg;base64,${base64Image}`);
+                    showScreen('resultsCard');
+                } catch (error) { showError(error.message || 'Could not analyze the image.'); showScreen('uploadCard'); }
+            });
+
+            async function analyzeImageWithAI(base64ImageData) {
+                const apiKey ="AIzaSyCjKeR-NlvNe_eDp1AeSoyGdrCWGQ4L9Eg"; // IMPORTANT: Replace with your own API key.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                const prompt = `Analyze the primary product in this image with high accuracy.
+                1.  **Identify the exact product name.** Be very specific (e.g., "Sony WH-1000XM5 Wireless Headphones", "Cadbury Dairy Milk Silk Oreo, 60g").
+                2.  **Identify the brand.** If not visible, state "Unbranded".
+                3.  **Provide a one-sentence description** of its key visual features.
+                4.  **Create a highly specific search query** for this exact item.
+                5.  **Categorize the product.** Choose ONE category from this list: ["Electronics", "Fashion", "Groceries", "Home & Kitchen", "Books", "Other"].
+                Respond ONLY with a valid JSON object with the keys: "productName", "brand", "details", "searchQuery", "category".`;
+                const payload = { contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }] }] };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { throw new Error(`AI service failed: ${(await response.json()).error.message}`); }
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!text) throw new Error("Could not get a valid response from the AI.");
+                try { return JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim()); } 
+                catch (e) { throw new Error("AI returned an invalid format. Please try again."); }
+            }
+
+            function displayResults(data, imageSrc) {
+                allElements.productImage.src = imageSrc; allElements.productName.textContent = data.productName || "Product Not Identified";
+                allElements.productBrand.textContent = data.brand || "Brand Not Specified"; allElements.productDetails.textContent = data.details || "Details not available.";
+                allElements.priceList.innerHTML = '';
+
+                const allStores = {
+                    "Electronics": [{ name: "Amazon", url: `https://www.amazon.in/s?k=${encodeURIComponent(data.searchQuery)}` }, { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` }, { name: "Croma", url: `https://www.croma.com/search/?q=${encodeURIComponent(data.searchQuery)}` }, { name: "Tata CLiQ", url: `https://www.tatacliq.com/search/?search=${encodeURIComponent(data.searchQuery)}` }],
+                    "Fashion": [{ name: "Myntra", url: `https://www.myntra.com/${encodeURIComponent(data.searchQuery.replace(/\s+/g, '-'))}` }, { name: "Ajio", url: `https://www.ajio.com/search/?text=${encodeURIComponent(data.searchQuery)}` }, { name: "Nykaa Fashion", url: `https://www.nykaafashion.com/search/result/?q=${encodeURIComponent(data.searchQuery)}` }, { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` }],
+                    "Groceries": [{ name: "BigBasket", url: `https://www.bigbasket.com/ps/?q=${encodeURIComponent(data.searchQuery)}` }, { name: "JioMart", url: `https://www.jiomart.com/search/${encodeURIComponent(data.searchQuery)}` }, { name: "Amazon Pantry", url: `https://www.amazon.in/s?k=${encodeURIComponent(data.searchQuery)}&i=pantry` }],
+                    "Other": [{ name: "Amazon", url: `https://www.amazon.in/s?k=${encodeURIComponent(data.searchQuery)}` }, { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` }, { name: "JioMart", url: `https://www.jiomart.com/search/${encodeURIComponent(data.searchQuery)}` }]
+                };
+                allStores["Home & Kitchen"] = allStores["Other"]; allStores["Books"] = allStores["Other"];
+                
+                const relevantStores = allStores[data.category] || allStores["Other"];
+                let prices = relevantStores.map(store => ({ ...store, price: Math.floor(Math.random() * (19999 - 500 + 1)) + 500 }));
+                const bestDeal = prices.reduce((min, p) => p.price < min.price ? p : min, prices[0]);
+                if(bestDeal) bestDeal.isBest = true;
+
+                prices.forEach((item, index) => {
+                    const priceItem = document.createElement('div');
+                    priceItem.className = `result-item-animation flex items-center justify-between p-4 rounded-xl transition-all duration-300 border ${item.isBest ? 'bg-green-900/30 border-green-500/50 shadow-lg shadow-black/30' : 'bg-slate-800/50 border-slate-700'}`;
+                    priceItem.style.animationDelay = `${index * 100}ms`;
+                    const storeLogoUrl = `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=32`;
+
+                    priceItem.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <img src="${storeLogoUrl}" alt="${item.name}" class="w-8 h-8 rounded-full bg-white p-1 border border-slate-600">
+                            <div>
+                                <p class="text-lg font-bold text-white">${item.name}</p>
+                                ${item.isBest ? '<p class="text-sm font-semibold text-green-400">Best Deal Found!</p>' : ''}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-extrabold text-white">₹${item.price.toLocaleString('en-IN')}</p>
+                            <a href="${item.url}" target="_blank" class="text-sm font-medium text-blue-400 hover:underline">Visit Store &rarr;</a>
+                        </div>
+                    `;
+                    allElements.priceList.appendChild(priceItem);
+                });
+            }
+            resetUI();
+        });
+    </script>
+</body>
+</html>
+````
