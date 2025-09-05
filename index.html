@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,7 +91,7 @@
                         </div>
                     </div>
                     
-                    <h3 class="text-xl font-bold mb-4 text-center sm:text-left text-white">Price Comparison (Simulated)</h3>
+                    <h3 class="text-xl font-bold mb-4 text-center sm:text-left text-white">Price Comparison (AI-Based)</h3>
                     <div id="price-list" class="space-y-4">
                         </div>
                 </div>
@@ -166,15 +165,17 @@
             });
 
             async function analyzeImageWithAI(base64ImageData) {
-                const apiKey ="AIzaSyCjKeR-NlvNe_eDp1AeSoyGdrCWGQ4L9Eg"; // IMPORTANT: Replace with your own API key.
+                const apiKey ="AIzaSyBOvq-uPVG_GuyL_ZrY4jqJkFY14Gom8gc"; 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
                 const prompt = `Analyze the primary product in this image with high accuracy.
-                1.  **Identify the exact product name.** Be very specific (e.g., "Sony WH-1000XM5 Wireless Headphones", "Cadbury Dairy Milk Silk Oreo, 60g").
+                1.  **Identify the exact product name.** Be very specific (e.g., "Sony WH-1000XM5 Wireless Headphones", "Adidas Ultraboost 22 Running Shoes").
                 2.  **Identify the brand.** If not visible, state "Unbranded".
                 3.  **Provide a one-sentence description** of its key visual features.
                 4.  **Create a highly specific search query** for this exact item.
                 5.  **Categorize the product.** Choose ONE category from this list: ["Electronics", "Fashion", "Groceries", "Home & Kitchen", "Books", "Other"].
-                Respond ONLY with a valid JSON object with the keys: "productName", "brand", "details", "searchQuery", "category".`;
+                6.  **Estimate realistic price range in Indian Rupees (INR).** Based on the product type, brand, and features, provide a realistic minimum and maximum price range. Give as two numbers: [min_price, max_price].
+                
+                Respond ONLY with a valid JSON object with the keys: "productName", "brand", "details", "searchQuery", "category", "priceRange".`;
                 const payload = { contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }] }] };
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) { throw new Error(`AI service failed: ${(await response.json()).error.message}`); }
@@ -190,16 +191,29 @@
                 allElements.productBrand.textContent = data.brand || "Brand Not Specified"; allElements.productDetails.textContent = data.details || "Details not available.";
                 allElements.priceList.innerHTML = '';
 
-                const allStores = {
-                    "Electronics": [{ name: "Amazon", url: `https://www.amazon.in/s?k=${encodeURIComponent(data.searchQuery)}` }, { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` }, { name: "Croma", url: `https://www.croma.com/search/?q=${encodeURIComponent(data.searchQuery)}` }, { name: "Tata CLiQ", url: `https://www.tatacliq.com/search/?search=${encodeURIComponent(data.searchQuery)}` }],
-                    "Fashion": [{ name: "Myntra", url: `https://www.myntra.com/${encodeURIComponent(data.searchQuery.replace(/\s+/g, '-'))}` }, { name: "Ajio", url: `https://www.ajio.com/search/?text=${encodeURIComponent(data.searchQuery)}` }, { name: "Nykaa Fashion", url: `https://www.nykaafashion.com/search/result/?q=${encodeURIComponent(data.searchQuery)}` }, { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` }],
-                    "Groceries": [{ name: "BigBasket", url: `https://www.bigbasket.com/ps/?q=${encodeURIComponent(data.searchQuery)}` }, { name: "JioMart", url: `https://www.jiomart.com/search/${encodeURIComponent(data.searchQuery)}` }, { name: "Amazon Pantry", url: `https://www.amazon.in/s?k=${encodeURIComponent(data.searchQuery)}&i=pantry` }],
-                    "Other": [{ name: "Amazon", url: `https://www.amazon.in/s?k=${encodeURIComponent(data.searchQuery)}` }, { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` }, { name: "JioMart", url: `https://www.jiomart.com/search/${encodeURIComponent(data.searchQuery)}` }]
-                };
-                allStores["Home & Kitchen"] = allStores["Other"]; allStores["Books"] = allStores["Other"];
+                const fashionStores = [
+                    { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` },
+                    { name: "Nykaa", url: `https://www.nykaa.com/search?root=search&query=${encodeURIComponent(data.searchQuery)}` },
+                    { name: "Myntra", url: `https://www.myntra.com/${encodeURIComponent(data.searchQuery.replace(/\s+/g, '-'))}` },
+                    { name: "Ajio", url: `https://www.ajio.com/search/?text=${encodeURIComponent(data.searchQuery)}` }
+                ];
                 
-                const relevantStores = allStores[data.category] || allStores["Other"];
-                let prices = relevantStores.map(store => ({ ...store, price: Math.floor(Math.random() * (19999 - 500 + 1)) + 500 }));
+                const minPrice = (data.priceRange && data.priceRange[0]) || 500;
+                const maxPrice = (data.priceRange && data.priceRange[1]) || 5000;
+
+                let prices = fashionStores.map(store => {
+                    
+                    const basePrice = Math.floor(Math.random() * (maxPrice - minPrice + 1)) + minPrice;
+                   
+                    const variation = Math.floor(basePrice * 0.1 * (Math.random() - 0.5));
+                    const finalPrice = Math.max(basePrice + variation, minPrice);
+             
+                    const roundedPrice = Math.round(finalPrice / 10) * 10;
+                    const realisticPrice = Math.random() > 0.5 ? roundedPrice - 1 : roundedPrice;
+                    
+                    return { ...store, price: Math.max(realisticPrice, 1) };
+                });
+                
                 const bestDeal = prices.reduce((min, p) => p.price < min.price ? p : min, prices[0]);
                 if(bestDeal) bestDeal.isBest = true;
 
@@ -230,4 +244,3 @@
     </script>
 </body>
 </html>
-````
