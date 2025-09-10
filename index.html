@@ -3,242 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Product Comparision | Professional Edition</title>
+    <title>AI Product Discovery Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #020617; /* slate-950 */
+            background-color: #020617;
             background-image: radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 50%),
                               radial-gradient(at 97% 21%, hsla(135, 98%, 72%, 0.1) 0px, transparent 50%),
                               radial-gradient(at 75% 88%, hsla(240, 98%, 72%, 0.15) 0px, transparent 50%);
         }
         .animated-gradient {
             background-image: linear-gradient(120deg, #1e3a8a, #059669, #3b82f6, #10b981);
-            background-size: 400% 400%;
-            animation: gradient-animation 15s ease infinite;
+            background-size: 400% 400%; animation: gradient-animation 15s ease infinite;
         }
-        @keyframes gradient-animation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes gradient-animation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result-item-animation { opacity: 0; animation: fadeIn 0.5s ease-in-out forwards; }
-        .glass-card { background-color: rgba(2, 6, 23, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass-card { background-color: rgba(2, 6, 23, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .tab-btn.active { color: #38bdf8; border-color: #38bdf8; background-color: rgba(56, 189, 248, 0.1); }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        .loading-text-anim { animation: text-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes text-pulse { 50% { opacity: .5; } }
+        .modal-hidden { display: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 40; }
+        .modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; }
+        .progress-ring-circle { transition: stroke-dashoffset 0.8s ease-out; transform: rotate(-90deg); transform-origin: 50% 50%; }
     </style>
 </head>
 <body class="text-slate-300 min-h-screen">
 
     <header class="bg-slate-900/70 backdrop-blur-lg shadow-lg shadow-black/20 sticky top-0 z-20 border-b border-slate-800">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-white">AI Product Comparision</h1>
+            <h1 class="text-xl md:text-2xl font-bold text-white">AI Product Discovery Platform</h1>
+            <button id="wishlist-nav-btn" class="flex items-center gap-2 bg-slate-800 text-slate-300 px-4 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors border border-slate-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                <span class="hidden sm:inline">My Wishlist</span>
+            </button>
         </div>
     </header>
 
     <main class="container mx-auto px-6 py-12">
-        <div id="main-content" class="max-w-3xl mx-auto">
+        <div id="main-content" class="max-w-4xl mx-auto">
             
-            <div id="upload-card" class="glass-card p-8 rounded-2xl shadow-2xl shadow-black/30 transition-all duration-500">
-                <div class="text-center">
-                    <div class="mx-auto bg-slate-700/50 rounded-full w-16 h-16 flex items-center justify-center border border-slate-700">
-                        <svg class="w-8 h-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+            <!-- UPLOAD SCREEN -->
+            <div id="upload-card" class="fade-in">
+                <div class="glass-card p-8 rounded-2xl shadow-2xl shadow-black/30">
+                    <div class="text-center">
+                        <div class="mx-auto bg-slate-700/50 rounded-full w-16 h-16 flex items-center justify-center border border-slate-700">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+                        </div>
+                        <h2 class="text-3xl font-extrabold mt-4 text-white">Upload an Image to Begin Discovery</h2>
+                        <p class="text-slate-400 mt-2">Our advanced AI will identify the product and reveal insights beyond the surface.</p>
                     </div>
-                    <h2 class="text-3xl font-extrabold mt-4 text-white">Upload Your Product Image</h2>
-                    <p class="text-slate-400 mt-2">Drag & drop an image or click to browse.</p>
-                </div>
-
-                <div id="upload-area" class="mt-8 border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition-colors">
-                    <input type="file" id="image-upload" accept="image/*" class="hidden">
-                    <div id="upload-prompt">
-                        <img id="image-preview" src="" class="hidden w-32 h-32 object-cover mx-auto rounded-lg mb-4 shadow-md">
-                        <p id="file-name" class="text-slate-300 font-medium">No file chosen</p>
-                        <p class="text-sm text-slate-500 mt-1">PNG, JPG, WEBP accepted</p>
+                    <div id="upload-area" class="mt-8 border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition-colors">
+                        <input type="file" id="image-upload" accept="image/*" class="hidden">
+                        <div id="upload-prompt"><img id="image-preview" src="" class="hidden w-32 h-32 object-cover mx-auto rounded-lg mb-4 shadow-md"><p id="file-name" class="text-slate-300 font-medium">No file chosen</p><p class="text-sm text-slate-500 mt-1">PNG, JPG, WEBP accepted</p></div>
                     </div>
+                    <button id="compare-btn" class="mt-8 w-full animated-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed" disabled>Run AI Discovery</button>
                 </div>
-                
-                <button id="compare-btn" class="mt-8 w-full animated-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:-translate-y-0" disabled>
-                    Analyze & Compare Prices
-                </button>
             </div>
             
+            <!-- LOADER SCREEN -->
             <div id="loader-card" class="hidden text-center glass-card p-8 rounded-2xl shadow-2xl shadow-black/30">
                 <div class="mx-auto w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
-                <h2 class="text-3xl font-extrabold mt-6 text-white">Analyzing with AI...</h2>
-                <p id="loading-text" class="text-slate-400 mt-2">Our AI is identifying the product, please wait a moment.</p>
+                <h2 class="text-3xl font-extrabold mt-6 text-white">AI Engine is Working...</h2>
+                <p id="loading-text" class="text-slate-400 mt-2 loading-text-anim">Initializing analysis...</p>
             </div>
 
+            <!-- RESULTS SCREEN -->
             <div id="results-card" class="hidden">
                 <div class="text-center mb-12">
-                     <h2 class="text-3xl font-extrabold text-white">AI Analysis Complete!</h2>
-                     <p class="text-slate-400 mt-2">Here's what we found, with price comparisons from relevant stores.</p>
+                     <h2 class="text-3xl font-extrabold text-white">AI Discovery Report</h2>
+                     <p class="text-slate-400 mt-2">Here's the complete analysis of the identified product.</p>
                 </div>
-
-                <div class="glass-card p-8 rounded-2xl shadow-2xl shadow-black/30">
-                    <div id="product-info" class="flex flex-col sm:flex-row items-center gap-8 mb-8 pb-8 border-b border-slate-700">
-                        <img id="product-image" src="" alt="Product Image" class="w-40 h-40 object-cover rounded-xl shadow-lg border-2 border-slate-700">
-                        <div class="text-center sm:text-left">
+                <div class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl shadow-black/30">
+                    <div class="flex flex-col md:flex-row items-center gap-6 md:gap-8 mb-8 pb-8 border-b border-slate-700">
+                        <img id="product-image" src="" alt="Product Image" class="w-32 h-32 md:w-40 md:h-40 object-cover rounded-xl shadow-lg border-2 border-slate-700 flex-shrink-0">
+                        <div class="text-center md:text-left flex-grow">
                             <p class="text-blue-400 font-semibold" id="product-brand">Brand</p>
-                            <h3 id="product-name" class="text-3xl font-bold text-white leading-tight">Product Name</h3>
+                            <h3 id="product-name" class="text-2xl md:text-3xl font-bold text-white leading-tight">Product Name</h3>
                             <p class="text-slate-400 mt-2" id="product-details">Details from AI...</p>
+                            <div class="mt-4 flex flex-wrap gap-3 justify-center md:justify-start">
+                                <button id="visualize-btn" class="inline-flex items-center gap-2 bg-purple-500/10 text-purple-400 px-4 py-2 rounded-lg font-semibold hover:bg-purple-500/20 transition-colors border border-purple-500/30">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                                    Visualize in a Scene
+                                </button>
+                                <button id="save-wishlist-btn" class="inline-flex items-center gap-2 bg-sky-500/10 text-sky-400 px-4 py-2 rounded-lg font-semibold hover:bg-sky-500/20 transition-colors border border-sky-500/30">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
+                                    Save to Wishlist
+                                </button>
+                            </div>
                         </div>
+                         <!-- SUSTAINABILITY SCORE -->
+                        <div id="sustainability-score-container" class="text-center flex-shrink-0"></div>
                     </div>
-                    
-                    <h3 class="text-xl font-bold mb-4 text-center sm:text-left text-white">Price Comparison (AI-Based)</h3>
-                    <div id="price-list" class="space-y-4">
-                        </div>
+                    <!-- TABS -->
+                    <div class="border-b border-slate-700 mb-6"><nav class="flex -mb-px space-x-2 sm:space-x-6" aria-label="Tabs">
+                        <button id="tab-btn-compare" class="tab-btn active whitespace-nowrap py-4 px-1 sm:px-2 border-b-2 font-medium text-base sm:text-lg">Price Comparison</button>
+                        <button id="tab-btn-proscons" class="tab-btn text-slate-400 hover:text-white whitespace-nowrap py-4 px-1 sm:px-2 border-b-2 border-transparent font-medium text-base sm:text-lg">Pros & Cons</button>
+                        <button id="tab-btn-style" class="tab-btn text-slate-400 hover:text-white whitespace-nowrap py-4 px-1 sm:px-2 border-b-2 border-transparent font-medium text-base sm:text-lg">Style Alternatives</button>
+                        <button id="tab-btn-history" class="tab-btn text-slate-400 hover:text-white whitespace-nowrap py-4 px-1 sm:px-2 border-b-2 border-transparent font-medium text-base sm:text-lg">Price History</button>
+                    </nav></div>
+                    <!-- TAB CONTENT -->
+                    <div id="tab-content-compare" class="tab-content active"><div id="price-list" class="space-y-4"></div></div>
+                    <div id="tab-content-proscons" class="tab-content"><div id="pros-cons-list" class="grid md:grid-cols-2 gap-6"></div></div>
+                    <div id="tab-content-style" class="tab-content"><div id="style-alternatives-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div></div>
+                    <div id="tab-content-history" class="tab-content"><canvas id="price-history-chart" height="250"></canvas></div>
                 </div>
-                <div class="text-center mt-8">
-                     <button id="start-over-btn" class="bg-slate-800 text-slate-300 px-6 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors border border-slate-700">Start Over</button>
-                </div>
+                <div class="text-center mt-8"><button id="start-over-btn" class="bg-slate-800 text-slate-300 px-6 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors border border-slate-700">Analyze Another Product</button></div>
             </div>
 
-            <div id="error-box" class="hidden mt-6 bg-red-900/50 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg fade-in" role="alert">
-                <strong class="font-bold">Error:</strong>
-                <span id="error-message"></span>
+            <!-- WISHLIST SCREEN -->
+            <div id="wishlist-card" class="hidden">
+                 <div class="flex justify-between items-center mb-8">
+                    <div><h2 class="text-3xl font-extrabold text-white">My Saved Items</h2><p class="text-slate-400 mt-2">Products you've saved for future reference.</p></div>
+                    <button id="back-to-analyzer-btn" class="bg-slate-800 text-slate-300 px-4 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors border border-slate-700">← Back to Analyzer</button>
+                 </div>
+                 <div id="wishlist-items" class="space-y-6"></div>
+                 <div id="wishlist-empty" class="hidden text-center glass-card p-12 rounded-2xl"><p class="text-xl font-semibold text-slate-400">Your wishlist is empty.</p><p class="text-slate-500">Analyzed products can be saved here.</p></div>
+                 <div id="clear-wishlist-container" class="text-center mt-8"><button id="clear-wishlist-btn" class="text-red-400 hover:text-red-300 font-semibold hover:underline">Clear Entire Wishlist</button></div>
             </div>
+            <div id="error-box" class="hidden mt-6 bg-red-900/50 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg fade-in" role="alert"><strong class="font-bold">Error:</strong> <span id="error-message"></span></div>
         </div>
     </main>
+
+    <!-- VIRTUAL STAGING MODAL -->
+    <div id="virtual-stage-modal" class="modal-hidden">
+        <div id="modal-overlay" class="modal-overlay"></div>
+        <div class="modal-content glass-card p-6 rounded-2xl shadow-2xl w-[90vw] max-w-2xl text-center">
+            <h3 class="text-2xl font-bold text-white mb-4">AI Virtual Staging</h3>
+            <div id="modal-loader" class="text-center">
+                <div class="mx-auto w-12 h-12 border-4 border-slate-700 border-t-purple-500 rounded-full animate-spin"></div>
+                <p id="modal-status-text" class="text-slate-400 mt-4 loading-text-anim">Generating scene... This may take a moment.</p>
+            </div>
+            <div id="modal-result" class="hidden">
+                <img id="staged-image" src="" alt="AI Generated Scene" class="w-full h-auto object-contain rounded-lg border-2 border-slate-700 max-h-[60vh]">
+                <p class="text-xs text-slate-500 mt-2">Disclaimer: This scene is an AI-generated artistic representation.</p>
+            </div>
+            <button id="modal-close-btn" class="mt-6 bg-slate-800 text-slate-300 px-6 py-2 rounded-lg font-semibold hover:bg-slate-700 transition-colors border border-slate-700">Close</button>
+        </div>
+    </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const allElements = {
                 uploadCard: document.getElementById('upload-card'), loaderCard: document.getElementById('loader-card'), resultsCard: document.getElementById('results-card'),
-                uploadArea: document.getElementById('upload-area'), imageUpload: document.getElementById('image-upload'), imagePreview: document.getElementById('image-preview'),
-                fileNameDisplay: document.getElementById('file-name'), compareBtn: document.getElementById('compare-btn'), loadingText: document.getElementById('loading-text'),
-                productImage: document.getElementById('product-image'), productName: document.getElementById('product-name'), productBrand: document.getElementById('product-brand'),
-                productDetails: document.getElementById('product-details'), priceList: document.getElementById('price-list'), errorBox: document.getElementById('error-box'),
-                errorMessage: document.getElementById('error-message'), startOverBtn: document.getElementById('start-over-btn'),
+                wishlistCard: document.getElementById('wishlist-card'), uploadArea: document.getElementById('upload-area'), imageUpload: document.getElementById('image-upload'),
+                imagePreview: document.getElementById('image-preview'), fileNameDisplay: document.getElementById('file-name'), compareBtn: document.getElementById('compare-btn'),
+                loadingText: document.getElementById('loading-text'), productImage: document.getElementById('product-image'), productName: document.getElementById('product-name'),
+                productBrand: document.getElementById('product-brand'), productDetails: document.getElementById('product-details'), priceList: document.getElementById('price-list'),
+                errorBox: document.getElementById('error-box'), errorMessage: document.getElementById('error-message'), startOverBtn: document.getElementById('start-over-btn'),
+                saveWishlistBtn: document.getElementById('save-wishlist-btn'), wishlistNavBtn: document.getElementById('wishlist-nav-btn'),
+                backToAnalyzerBtn: document.getElementById('back-to-analyzer-btn'), wishistItemsContainer: document.getElementById('wishlist-items'),
+                wishlistEmpty: document.getElementById('wishlist-empty'), clearWishlistContainer: document.getElementById('clear-wishlist-container'),
+                clearWishlistBtn: document.getElementById('clear-wishlist-btn'), prosConsList: document.getElementById('pros-cons-list'),
+                priceHistoryChartCanvas: document.getElementById('price-history-chart'),
+                sustainabilityScoreContainer: document.getElementById('sustainability-score-container'),
+                styleAlternativesList: document.getElementById('style-alternatives-list'),
+                visualizeBtn: document.getElementById('visualize-btn'),
+                virtualStageModal: document.getElementById('virtual-stage-modal'),
+                modalOverlay: document.getElementById('modal-overlay'),
+                modalCloseBtn: document.getElementById('modal-close-btn'),
+                modalLoader: document.getElementById('modal-loader'),
+                modalStatusText: document.getElementById('modal-status-text'),
+                modalResult: document.getElementById('modal-result'),
+                stagedImage: document.getElementById('staged-image'),
+                tabs: {
+                    compare: { btn: document.getElementById('tab-btn-compare'), content: document.getElementById('tab-content-compare') },
+                    proscons: { btn: document.getElementById('tab-btn-proscons'), content: document.getElementById('tab-content-proscons') },
+                    style: { btn: document.getElementById('tab-btn-style'), content: document.getElementById('tab-content-style') },
+                    history: { btn: document.getElementById('tab-btn-history'), content: document.getElementById('tab-content-history') },
+                }
             };
-            let base64Image = null;
 
-            const showScreen = (screenName) => {
-                ['uploadCard', 'loaderCard', 'resultsCard'].forEach(card => allElements[card].classList.add('hidden'));
-                if (allElements[screenName]) { allElements[screenName].classList.remove('hidden'); allElements[screenName].classList.add('fade-in'); }
-            };
+            let base64Image = null, currentProductData = {}, wishlist = [], priceChartInstance = null;
+            const API_KEY = "AIzaSyBOvq-uPVG_GuyL_ZrY4jqJkFY14Gom8gc"; // ⚠️ PASTE YOUR GOOGLE AI API KEY HERE
+
+            // --- UI & SCREEN LOGIC ---
+            const showScreen = (screenName) => { ['uploadCard', 'loaderCard', 'resultsCard', 'wishlistCard'].forEach(card => allElements[card].classList.add('hidden')); if (allElements[screenName]) { allElements[screenName].classList.remove('hidden'); allElements[screenName].classList.add('fade-in'); } };
             const showError = (message) => { allElements.errorMessage.textContent = message; allElements.errorBox.classList.remove('hidden'); };
             const hideError = () => allElements.errorBox.classList.add('hidden');
-            const resetUI = () => {
-                base64Image = null; allElements.imageUpload.value = ''; allElements.imagePreview.classList.add('hidden');
-                allElements.fileNameDisplay.textContent = 'No file chosen'; allElements.compareBtn.disabled = true;
-                hideError(); showScreen('uploadCard');
-            };
+            const resetUI = () => { base64Image = null; allElements.imageUpload.value = ''; allElements.imagePreview.classList.add('hidden'); allElements.fileNameDisplay.textContent = 'No file chosen'; allElements.compareBtn.disabled = true; currentProductData = {}; allElements.saveWishlistBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>Save to Wishlist`; allElements.saveWishlistBtn.disabled = false; hideError(); showScreen('uploadCard'); };
+            Object.values(allElements.tabs).forEach(tab => { tab.btn.addEventListener('click', () => { Object.values(allElements.tabs).forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); }); tab.btn.classList.add('active'); tab.content.classList.add('active'); }); });
+            const showModal = () => { allElements.virtualStageModal.classList.remove('modal-hidden'); };
+            const hideModal = () => { allElements.virtualStageModal.classList.add('modal-hidden'); };
 
-            allElements.uploadArea.addEventListener('click', () => allElements.imageUpload.click());
-            allElements.startOverBtn.addEventListener('click', resetUI);
-            
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => allElements.uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false));
-            allElements.uploadArea.addEventListener('dragover', () => allElements.uploadArea.classList.add('bg-slate-800/50', 'border-blue-500'));
-            allElements.uploadArea.addEventListener('dragleave', () => allElements.uploadArea.classList.remove('bg-slate-800/50', 'border-blue-500'));
-            allElements.uploadArea.addEventListener('drop', e => {
-                allElements.uploadArea.classList.remove('bg-slate-800/50', 'border-blue-500');
-                if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-            });
-            allElements.imageUpload.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+            // --- FILE HANDLING ---
+            const setupFileHandlers = () => { allElements.uploadArea.addEventListener('click', () => allElements.imageUpload.click()); ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => { allElements.uploadArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false) }); allElements.uploadArea.addEventListener('dragover', () => allElements.uploadArea.classList.add('bg-slate-800/50', 'border-blue-500')); allElements.uploadArea.addEventListener('dragleave', () => allElements.uploadArea.classList.remove('bg-slate-800/50', 'border-blue-500')); allElements.uploadArea.addEventListener('drop', e => { allElements.uploadArea.classList.remove('bg-slate-800/50', 'border-blue-500'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }); allElements.imageUpload.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); }); };
+            function handleFile(file) { hideError(); allElements.fileNameDisplay.textContent = file.name; allElements.compareBtn.disabled = false; const reader = new FileReader(); reader.onload = () => { allElements.imagePreview.src = reader.result; allElements.imagePreview.classList.remove('hidden'); base64Image = reader.result.split(',')[1]; }; reader.onerror = () => { showError('Could not read the selected file.'); base64Image = null; }; reader.readAsDataURL(file); }
 
-            function handleFile(file) {
-                hideError(); allElements.fileNameDisplay.textContent = file.name; allElements.compareBtn.disabled = false;
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    allElements.imagePreview.src = reader.result; allElements.imagePreview.classList.remove('hidden');
-                    base64Image = reader.result.split(',')[1];
-                };
-                reader.onerror = () => { showError('Could not read the selected file.'); base64Image = null; };
+            // --- AI API CALLER WITH RETRY LOGIC ---
+            async function callGeminiAPI(model, payload, onRetry) {
+                if (!API_KEY) throw new Error("API Key is missing. Please add it in the script.");
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+                
+                const maxRetries = 3;
+                let lastError = null;
+
+                for (let attempt = 0; attempt < maxRetries; attempt++) {
+                    try {
+                        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                        if (response.status === 429) { // 429 is the status code for "Too Many Requests"
+                            throw new Error('Rate limit exceeded. Retrying...');
+                        }
+                        if (!response.ok) {
+                            const errorBody = await response.json();
+                            throw new Error(`API Error: ${errorBody.error?.message || response.statusText}`);
+                        }
+                        return await response.json(); // Success!
+                    } catch (error) {
+                        lastError = error;
+                        if (attempt < maxRetries - 1) {
+                            const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // Exponential backoff: 1s, 2s, 4s...
+                            if (onRetry) onRetry(attempt + 1, delay); // Callback to update UI
+                            await new Promise(res => setTimeout(res, delay));
+                        }
+                    }
+                }
+                throw lastError; // If all retries fail, throw the last error
             }
 
-            allElements.compareBtn.addEventListener('click', async () => {
-                if (!base64Image) { showError('Please select an image file first.'); return; }
-                showScreen('loaderCard');
-                try {
-                    const aiResponse = await analyzeImageWithAI(base64Image);
-                    displayResults(aiResponse, `data:image/jpeg;base64,${base64Image}`);
-                    showScreen('resultsCard');
-                } catch (error) { showError(error.message || 'Could not analyze the image.'); showScreen('uploadCard'); }
-            });
-
-            async function analyzeImageWithAI(base64ImageData) {
-                const apiKey ="AIzaSyCjKeR-NlvNe_eDp1AeSoyGdrCWGQ4L9Eg"; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-                const prompt = `Analyze the primary product in this image with high accuracy.
-                1.  **Identify the exact product name.** Be very specific (e.g., "Sony WH-1000XM5 Wireless Headphones", "Adidas Ultraboost 22 Running Shoes").
-                2.  **Identify the brand.** If not visible, state "Unbranded".
-                3.  **Provide a one-sentence description** of its key visual features.
-                4.  **Create a highly specific search query** for this exact item.
-                5.  **Categorize the product.** Choose ONE category from this list: ["Electronics", "Fashion", "Groceries", "Home & Kitchen", "Books", "Other"].
-                6.  **Estimate realistic price range in Indian Rupees (INR).** Based on the product type, brand, and features, provide a realistic minimum and maximum price range. Give as two numbers: [min_price, max_price].
-                
-                Respond ONLY with a valid JSON object with the keys: "productName", "brand", "details", "searchQuery", "category", "priceRange".`;
+            async function analyzeProductFromImage(base64ImageData) {
+                const prompt = `Analyze the product in this image. Respond ONLY with a valid JSON object with these keys: "productName", "brand", "details", "searchQuery", "priceRange", "pros", "cons", "sustainabilityScore", "sustainabilityJustification", "styleAlternatives".
+- priceRange: A realistic [min, max] price in INR.
+- pros/cons: An array of 3-4 short key points.
+- sustainabilityScore: An integer from 1-10.
+- sustainabilityJustification: A short sentence explaining the score.
+- styleAlternatives: An array of 3 objects, each with a "name" (hypothetical product) and a "reason" (why it's a style match).`;
                 const payload = { contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }] }] };
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) { throw new Error(`AI service failed: ${(await response.json()).error.message}`); }
-                const result = await response.json();
+                const result = await callGeminiAPI('gemini-1.5-flash-latest', payload);
                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (!text) throw new Error("Could not get a valid response from the AI.");
                 try { return JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim()); } 
-                catch (e) { throw new Error("AI returned an invalid format. Please try again."); }
+                catch (e) { console.error("Invalid JSON from API:", text); throw new Error("AI returned an invalid format. Please try again."); }
             }
-
-            function displayResults(data, imageSrc) {
-                allElements.productImage.src = imageSrc; allElements.productName.textContent = data.productName || "Product Not Identified";
-                allElements.productBrand.textContent = data.brand || "Brand Not Specified"; allElements.productDetails.textContent = data.details || "Details not available.";
-                allElements.priceList.innerHTML = '';
-
-                const fashionStores = [
-                    { name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(data.searchQuery)}` },
-                    { name: "Nykaa", url: `https://www.nykaa.com/search?root=search&query=${encodeURIComponent(data.searchQuery)}` },
-                    { name: "Myntra", url: `https://www.myntra.com/${encodeURIComponent(data.searchQuery.replace(/\s+/g, '-'))}` },
-                    { name: "Ajio", url: `https://www.ajio.com/search/?text=${encodeURIComponent(data.searchQuery)}` }
-                ];
-                
-                const minPrice = (data.priceRange && data.priceRange[0]) || 500;
-                const maxPrice = (data.priceRange && data.priceRange[1]) || 5000;
-
-                let prices = fashionStores.map(store => {
-                    
-                    const basePrice = Math.floor(Math.random() * (maxPrice - minPrice + 1)) + minPrice;
-                   
-                    const variation = Math.floor(basePrice * 0.1 * (Math.random() - 0.5));
-                    const finalPrice = Math.max(basePrice + variation, minPrice);
-             
-                    const roundedPrice = Math.round(finalPrice / 10) * 10;
-                    const realisticPrice = Math.random() > 0.5 ? roundedPrice - 1 : roundedPrice;
-                    
-                    return { ...store, price: Math.max(realisticPrice, 1) };
-                });
-                
-                const bestDeal = prices.reduce((min, p) => p.price < min.price ? p : min, prices[0]);
-                if(bestDeal) bestDeal.isBest = true;
-
-                prices.forEach((item, index) => {
-                    const priceItem = document.createElement('div');
-                    priceItem.className = `result-item-animation flex items-center justify-between p-4 rounded-xl transition-all duration-300 border ${item.isBest ? 'bg-green-900/30 border-green-500/50 shadow-lg shadow-black/30' : 'bg-slate-800/50 border-slate-700'}`;
-                    priceItem.style.animationDelay = `${index * 100}ms`;
-                    const storeLogoUrl = `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=32`;
-
-                    priceItem.innerHTML = `
-                        <div class="flex items-center gap-4">
-                            <img src="${storeLogoUrl}" alt="${item.name}" class="w-8 h-8 rounded-full bg-white p-1 border border-slate-600">
-                            <div>
-                                <p class="text-lg font-bold text-white">${item.name}</p>
-                                ${item.isBest ? '<p class="text-sm font-semibold text-green-400">Best Deal Found!</p>' : ''}
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-2xl font-extrabold text-white">₹${item.price.toLocaleString('en-IN')}</p>
-                            <a href="${item.url}" target="_blank" class="text-sm font-medium text-blue-400 hover:underline">Visit Store &rarr;</a>
-                        </div>
-                    `;
-                    allElements.priceList.appendChild(priceItem);
-                });
+            
+            async function generateStagedImage(base64ImageData, onRetryCallback) {
+                const prompt = "Isolate the main product in the user's image, remove its original background, and place it in a photorealistic, aesthetically pleasing, and relevant environment. For example, place headphones on a clean desk, or a vase in a modern living room. The output must be just the image.";
+                const payload = { contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: "image/jpeg", data: base64ImageData } }] }], generationConfig: { responseModalities: ['IMAGE'] } };
+                const result = await callGeminiAPI('gemini-2.5-flash-image-preview', payload, onRetryCallback);
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (!base64Data) throw new Error("Could not generate a staged image from the AI.");
+                return `data:image/png;base64,${base64Data}`;
             }
+            
+            // --- DISPLAY RESULTS FUNCTIONS ---
+            function displayResults(data) {
+                allElements.productImage.src = data.image; allElements.productName.textContent = data.productName || "N/A";
+                allElements.productBrand.textContent = data.brand || "N/A"; allElements.productDetails.textContent = data.details || "N/A";
+                renderPriceList(data.searchQuery, data.priceRange); renderProsCons(data.pros, data.cons);
+                renderSustainabilityScore(data.sustainabilityScore, data.sustainabilityJustification);
+                renderStyleAlternatives(data.styleAlternatives); renderPriceHistoryChart(data.priceRange);
+                updateSaveButtonState(data.productName);
+            }
+            function renderSustainabilityScore(score, justification) { const scoreValue = score || 0; const color = scoreValue > 7 ? 'text-green-400' : scoreValue > 4 ? 'text-yellow-400' : 'text-red-400'; const ringColor = scoreValue > 7 ? '#4ade80' : scoreValue > 4 ? '#facc15' : '#f87171'; const radius = 54; const circumference = 2 * Math.PI * radius; const offset = circumference - (scoreValue / 10) * circumference; allElements.sustainabilityScoreContainer.innerHTML = `<div class="relative w-32 h-32 mx-auto"><svg class="w-full h-full" viewBox="0 0 120 120"><circle class="text-slate-700" stroke-width="8" stroke="currentColor" fill="transparent" r="${radius}" cx="60" cy="60"/><circle class="progress-ring-circle" stroke-width="8" stroke="${ringColor}" stroke-linecap="round" fill="transparent" r="${radius}" cx="60" cy="60" style="stroke-dasharray:${circumference}; stroke-dashoffset:${offset};"/></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-3xl font-bold ${color}">${scoreValue}</span><span class="text-xs text-slate-400">/ 10</span></div></div><h4 class="font-bold mt-2 text-white">Sustainability Score</h4><p class="text-xs text-slate-500 max-w-[150px] mx-auto">${justification || "No justification provided."}</p>`; }
+            function renderStyleAlternatives(alternatives = []) { allElements.styleAlternativesList.innerHTML = ''; if (alternatives.length === 0) { allElements.styleAlternativesList.innerHTML = `<p class="text-slate-400 md:col-span-3 text-center">No style alternatives were generated.</p>`; return; } alternatives.forEach((item, index) => { const itemEl = document.createElement('div'); itemEl.className = 'result-item-animation bg-slate-800/50 p-4 rounded-xl border border-slate-700'; itemEl.style.animationDelay = `${index * 100}ms`; itemEl.innerHTML = `<div class="flex items-center gap-3 mb-2"><div class="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center flex-shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg></div><h4 class="font-bold text-white">${item.name}</h4></div><p class="text-sm text-slate-400">${item.reason}</p>`; allElements.styleAlternativesList.appendChild(itemEl); }); }
+            const renderPriceList = (searchQuery, priceRange) => { allElements.priceList.innerHTML = ''; const stores = [{ name: "Flipkart", url: `https://www.flipkart.com/search?q=${encodeURIComponent(searchQuery)}` }, { name: "Amazon IN", url: `https://www.amazon.in/s?k=${encodeURIComponent(searchQuery)}` }, { name: "Myntra", url: `https://www.myntra.com/${encodeURIComponent(searchQuery.replace(/\s+/g, '-'))}` }, ]; const [minPrice, maxPrice] = priceRange || [500, 5000]; let prices = stores.map(store => ({ ...store, price: Math.floor(Math.random() * (maxPrice - minPrice + 1)) + minPrice })); const bestDeal = prices.reduce((min, p) => p.price < min.price ? p : min, prices[0]); if(bestDeal) bestDeal.isBest = true; prices.forEach((item, index) => { const itemEl = document.createElement('div'); itemEl.className = `result-item-animation flex items-center justify-between p-4 rounded-xl border ${item.isBest ? 'bg-green-900/30 border-green-500/50' : 'bg-slate-800/50 border-slate-700'}`; itemEl.style.animationDelay = `${index * 100}ms`; itemEl.innerHTML = `<div class="flex items-center gap-4"><img src="https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=32" alt="${item.name}" class="w-8 h-8 rounded-full bg-white p-1 border border-slate-600"><div><p class="text-lg font-bold text-white">${item.name}</p>${item.isBest ? '<p class="text-sm font-semibold text-green-400">Best Deal (Simulated)</p>' : ''}</div></div><div class="text-right"><p class="text-2xl font-extrabold text-white">₹${item.price.toLocaleString('en-IN')}</p><a href="${item.url}" target="_blank" class="text-sm font-medium text-blue-400 hover:underline">Visit Store &rarr;</a></div>`; allElements.priceList.appendChild(itemEl); }); };
+            const renderProsCons = (pros = [], cons = []) => { allElements.prosConsList.innerHTML = `<div><h3 class="text-xl font-bold text-green-400 mb-3 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Pros</h3><ul class="space-y-2 list-inside">${pros.map(pro => `<li class="p-3 bg-slate-800/50 rounded-lg">${pro}</li>`).join('')}</ul></div><div><h3 class="text-xl font-bold text-red-400 mb-3 flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Cons</h3><ul class="space-y-2 list-inside">${cons.map(con => `<li class="p-3 bg-slate-800/50 rounded-lg">${con}</li>`).join('')}</ul></div>`; };
+            const renderPriceHistoryChart = (priceRange) => { if (priceChartInstance) { priceChartInstance.destroy(); } const [minPrice, maxPrice] = priceRange || [500, 5000]; const labels = Array.from({length: 30}, (_, i) => new Date(Date.now() - (29-i)*864e5).toLocaleDateString("en-IN", {day:'numeric', month:'short'})); let lastPrice = (minPrice + maxPrice) / 2; const data = Array.from({length: 30}, () => { const change = (Math.random() - 0.5) * (maxPrice * 0.05); lastPrice = Math.max(minPrice, Math.min(maxPrice, lastPrice + change)); return lastPrice; }); const ctx = allElements.priceHistoryChartCanvas.getContext('2d'); priceChartInstance = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Simulated Price (INR)', data, borderColor: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.2)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.5)' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.5)' } } } } }); };
+            
+            // --- LOCALSTORAGE WISHLIST FUNCTIONS ---
+            const loadWishlist = () => { const storedWishlist = localStorage.getItem('productWishlist'); wishlist = storedWishlist ? JSON.parse(storedWishlist) : []; renderWishlist(); }; 
+            const saveWishlist = () => { localStorage.setItem('productWishlist', JSON.stringify(wishlist)); renderWishlist(); }; 
+            const addToWishlist = () => { if (currentProductData.productName && !wishlist.some(item => item.productName === currentProductData.productName)) { wishlist.push(currentProductData); saveWishlist(); updateSaveButtonState(currentProductData.productName); } }; 
+            const removeFromWishlist = (productNameToRemove) => { wishlist = wishlist.filter(item => item.productName !== productNameToRemove); saveWishlist(); }; 
+            const renderWishlist = () => { allElements.wishistItemsContainer.innerHTML = ''; if (wishlist.length === 0) { allElements.wishlistEmpty.classList.remove('hidden'); allElements.clearWishlistContainer.classList.add('hidden'); } else { allElements.wishlistEmpty.classList.add('hidden'); allElements.clearWishlistContainer.classList.remove('hidden'); wishlist.forEach(item => { const itemEl = document.createElement('div'); itemEl.className = 'glass-card p-4 rounded-xl flex flex-col md:flex-row items-center gap-6'; itemEl.innerHTML = `<img src="${item.image}" alt="${item.productName}" class="w-24 h-24 object-cover rounded-lg border border-slate-700 flex-shrink-0"><div class="flex-grow text-center md:text-left"><p class="font-semibold text-slate-400">${item.brand}</p><h4 class="text-xl font-bold text-white">${item.productName}</h4><p class="text-sm text-slate-400">${item.details}</p></div><button data-product-name="${item.productName}" class="remove-btn bg-red-500/10 text-red-400 px-4 py-2 rounded-lg font-semibold hover:bg-red-500/20 transition-colors border border-red-500/30 flex-shrink-0">Remove</button>`; allElements.wishistItemsContainer.appendChild(itemEl); }); } };
+            const updateSaveButtonState = (productName) => { const isSaved = wishlist.some(item => item.productName === productName); if (isSaved) { allElements.saveWishlistBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>Saved`; allElements.saveWishlistBtn.disabled = true; } else { allElements.saveWishlistBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>Save to Wishlist`; allElements.saveWishlistBtn.disabled = false; } };
+            
+            // --- EVENT LISTENERS ---
+            allElements.compareBtn.addEventListener('click', async () => { if (!base64Image) { showError('Please select an image file first.'); return; } showScreen('loaderCard'); const loadingMessages = ["Identifying product...", "Querying AI model...", "Generating analysis...", "Calculating sustainability..."]; let msgIndex = 0; const msgInterval = setInterval(() => { msgIndex = (msgIndex + 1) % loadingMessages.length; allElements.loadingText.textContent = loadingMessages[msgIndex]; }, 1500); try { const aiResponse = await analyzeProductFromImage(base64Image); currentProductData = { ...aiResponse, image: `data:image/jpeg;base64,${base64Image}` }; displayResults(currentProductData); showScreen('resultsCard'); } catch (error) { showError(error.message || 'Could not analyze the image.'); showScreen('uploadCard'); } finally { clearInterval(msgInterval); allElements.loadingText.textContent = "Initializing analysis..."; } });
+            allElements.visualizeBtn.addEventListener('click', async () => {
+                showModal();
+                allElements.modalLoader.classList.remove('hidden');
+                allElements.modalResult.classList.add('hidden');
+                allElements.modalStatusText.textContent = "Generating scene... This may take a moment.";
+
+                const retryCallback = (attempt, delay) => {
+                    allElements.modalStatusText.textContent = `AI is busy. Retrying in ${Math.round(delay/1000)}s... (Attempt ${attempt})`;
+                };
+
+                try {
+                    const stagedImageUrl = await generateStagedImage(base64Image, retryCallback);
+                    allElements.stagedImage.src = stagedImageUrl;
+                    allElements.modalLoader.classList.add('hidden');
+                    allElements.modalResult.classList.remove('hidden');
+                } catch (error) {
+                    hideModal();
+                    showError(error.message || "Failed to generate virtual scene after multiple retries.");
+                }
+            });
+            allElements.modalCloseBtn.addEventListener('click', hideModal); allElements.modalOverlay.addEventListener('click', hideModal);
+            allElements.startOverBtn.addEventListener('click', resetUI); allElements.wishlistNavBtn.addEventListener('click', () => showScreen('wishlistCard')); allElements.backToAnalyzerBtn.addEventListener('click', () => showScreen('uploadCard')); allElements.saveWishlistBtn.addEventListener('click', addToWishlist); 
+            allElements.clearWishlistBtn.addEventListener('click', () => { wishlist = []; saveWishlist(); }); 
+            allElements.wishistItemsContainer.addEventListener('click', e => { if (e.target.matches('.remove-btn, .remove-btn *')) { removeFromWishlist(e.target.closest('.remove-btn').dataset.productName); } });
+            
+            // --- INITIALIZATION ---
+            setupFileHandlers(); 
+            loadWishlist(); 
             resetUI();
         });
     </script>
